@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Time around the world</title>
+
+    <link rel="stylesheet" href="main.css"/>
+</head>
+<body>
+
+<div style="width: 100%; text-align: center">
+    <h1>
+        Time now
+    </h1>
+    <div class="clock">
+        <div>
+            <div class="info date"></div>
+            <div class="info day"></div>
+        </div>
+        <div class="dot"></div>
+        <div>
+            <div class="hour-hand"></div>
+            <div class="minute-hand"></div>
+            <div class="second-hand"></div>
+        </div>
+        <div>
+            <span class="h3">3</span>
+            <span class="h6">6</span>
+            <span class="h9">9</span>
+            <span class="h12">12</span>
+        </div>
+        <div class="diallines"></div>
+    </div>
+</div>
+<span id="time-as-text" style="width: 100%;text-align: center;padding-top: 30px;"></span>
+<div style="display: block;padding-top: 110px;text-align: center;">
+    <div>
+        Asia
+        <select id="asia">
+        </select>
+    </div>
+    <div>
+        Europe
+        <select id="europe">
+        </select>
+    </div>
+</div>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+    let timeZone = 'Europe/Stockholm';
+
+    function changeTimeZone(event) {
+        timeZone = event.target.value;
+    }
+
+    document.getElementById('europe').onchange = changeTimeZone;
+    document.getElementById('asia').onchange = changeTimeZone;
+
+    async function loadTimeZones() {
+        const times = await fetch("timezone.json");
+        const json = await times.json();
+        for (const country of json) {
+            const split = country.split("/");
+            const continent = split[0];
+            const city = split[1];
+            switch (continent) {
+                case "Europe":
+                    $('#europe').append($('<option>', {
+                        value: country,
+                        text: city
+                    }));
+                    break;
+                case "Asia":
+                    $('#asia').append($('<option>', {
+                        value: country,
+                        text: city
+                    }));
+                    break;
+
+                default:
+                    break;
+            }
+        }
+    }
+
+    loadTimeZones();
+
+    var dialLines = document.getElementsByClassName('diallines');
+    var clockEl = document.getElementsByClassName('clock')[0];
+
+    for (var i = 1; i < 60; i++) {
+        clockEl.innerHTML += "<div class='diallines'></div>";
+        dialLines[i].style.transform = "rotate(" + 6 * i + "deg)";
+    }
+
+    function onTick() {
+        hourElement = document.querySelector('.hour-hand');
+        minuteElement = document.querySelector('.minute-hand');
+        secondElement = document.querySelector('.second-hand');
+
+
+        const date = new Date();
+        options = {
+            timeZone: timeZone,
+            hour12: false,
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit',
+            fractionalSecondDigits: 3
+        }
+
+        let currentTimeAnalog = new Intl.DateTimeFormat('en-US', options).format(date);
+
+        $("#time-as-text").text("The time is: " + currentTimeAnalog + " in " + timeZone);
+
+        let hr = currentTimeAnalog.split(':')[0];
+        let min = currentTimeAnalog.split(':')[1];
+        let sec = currentTimeAnalog.split(':')[2];
+
+        hr_rotation = 30 * hr + min / 2;
+        min_rotation = 6 * min;
+        sec_rotation = 6 * sec;
+
+        hourElement.style.transform = `rotate(${hr_rotation}deg)`;
+        minuteElement.style.transform = `rotate(${min_rotation}deg)`;
+        secondElement.style.transform = `rotate(${sec_rotation}deg)`;
+    }
+
+    setInterval(onTick, 1000);
+
+</script>
+
+</body>
+</html>
